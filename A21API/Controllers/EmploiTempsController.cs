@@ -123,15 +123,13 @@ namespace A21API.Controllers
                 return NotFound();
             }
 
-            // Serialize and return the created EmploiTemps object
-            var options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve,
-                WriteIndented = true
-            };
 
-            var serializedEmploiTemps = JsonSerializer.Serialize(empt, options);
-            return Ok(serializedEmploiTemps);
+            foreach (var item in empt.CrenoHoraires)
+            {
+                item.EmploiTemps = null;
+                item.Enseignant = null;                
+            }
+            return Ok(empt);
 
         }
 
@@ -143,28 +141,15 @@ namespace A21API.Controllers
                 Annee_Scolaire = emploiTemps.Annee_Scolaire,
                 Nom_Ecole = emploiTemps.Nom_Ecole,
                 Groupe = emploiTemps.Groupe,
-                Locale = emploiTemps.Locale,
-                CrenoHoraires = new List<CrenoHoraire>()
+                Locale = emploiTemps.Locale
             };
-
-            string[] JoursArray = new string[] { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" };
-
-            // Add CrenoHoraires to the new EmploiTemps object
-
-            for (int jourIndex = 0; jourIndex < 5; jourIndex++)
+            foreach (var ch in emploiTemps.CrenoHoraires)
             {
-                for (int periode = 1; periode <= 5; periode++)
-                {
-                    var crenoHoraire = new CrenoHoraire
-                    {
-                        Jours = JoursArray[jourIndex],
-                        Periode = periode,
-                        EmploiTemps = newEmploiTemps
-                    };
-                    newEmploiTemps.CrenoHoraires.Add(crenoHoraire);
-                }
+                ch.ID = 0;
+                ch.EmploiTemps = newEmploiTemps;
             }
 
+            newEmploiTemps.CrenoHoraires = emploiTemps.CrenoHoraires;
             // Add the new EmploiTemps object to the context and save changes
             _context.EmploiTemps.Add(newEmploiTemps);
             await _context.SaveChangesAsync();
