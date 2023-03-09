@@ -1,6 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace A21API.Models
 {
@@ -14,6 +13,7 @@ namespace A21API.Models
 
         [ForeignKey(nameof(Enseignant))]
         public int? EnseignantID { get; set; }
+
         public Enseignant? Enseignant { get; set; }
 
         [Required]
@@ -27,7 +27,7 @@ namespace A21API.Models
         [Required]
         [ForeignKey(nameof(EmploiTemps))]
         public int EmploiTempsID { get; set; }
-        public EmploiTemps? EmploiTemps { get; set; }
 
+        public EmploiTemps? EmploiTemps { get; set; }
     }
 }

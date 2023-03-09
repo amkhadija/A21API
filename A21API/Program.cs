@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using A21API.Data;
-using Pomelo.EntityFrameworkCore.MySql;
-using System;
+﻿using A21API.Data;
+using A21API.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<A21APIContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("A21APIContext") ?? throw new InvalidOperationException("Connection string 'A21APIContext' not found.")));
-
+builder.Services.AddScoped<IEmploiTempsService, EmploiTempsService>();
 // Add services to the container.
 builder.Services.AddControllers();
 

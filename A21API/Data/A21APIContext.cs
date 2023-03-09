@@ -16,7 +16,6 @@ namespace A21API.Data
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
-
         //    modelBuilder.Entity<Enseignant>()
         //        .Property(e => e.Cours)
         //        .HasConversion<string>();

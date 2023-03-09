@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using A21API.Data;
+using A21API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using A21API.Data;
-using A21API.Models;
 
 namespace A21API.Controllers
 {
@@ -25,10 +20,10 @@ namespace A21API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Enseignant>>> GetEnseignants()
         {
-          if (_context.Enseignants == null)
-          {
-              return NotFound();
-          }
+            if (_context.Enseignants == null)
+            {
+                return NotFound();
+            }
             return await _context.Enseignants.ToListAsync();
         }
 
@@ -36,10 +31,10 @@ namespace A21API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Enseignant>> GetEnseignant(int id)
         {
-          if (_context.Enseignants == null)
-          {
-              return NotFound();
-          }
+            if (_context.Enseignants == null)
+            {
+                return NotFound();
+            }
             var enseignant = await _context.Enseignants.FindAsync(id);
 
             if (enseignant == null)
@@ -86,10 +81,10 @@ namespace A21API.Controllers
         [HttpPost]
         public async Task<ActionResult<Enseignant>> PostEnseignant(Enseignant enseignant)
         {
-          if (_context.Enseignants == null)
-          {
-              return Problem("Entity set 'A21APIContext.Enseignants'  is null.");
-          }
+            if (_context.Enseignants == null)
+            {
+                return Problem("Entity set 'A21APIContext.Enseignants'  is null.");
+            }
             _context.Enseignants.Add(enseignant);
             await _context.SaveChangesAsync();
 
