@@ -1,9 +1,6 @@
 ﻿using A21API.Data;
 using A21API.Models;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace A21API.Services
 {
@@ -30,10 +27,10 @@ namespace A21API.Services
 
         public async Task<EmploiTemps> SaveEmploiTemps(EmploiTemps emploiTemps)
         {
-            if (!EmploiDuTempsValide(emploiTemps))
+            if (!await EmploiDuTempsValide(emploiTemps))
             {
                 return emploiTemps;
-                //erruers dans erreurs
+                //il y aura des erruers à afficher
             }
 
             EmploiTemps empt;
@@ -132,34 +129,41 @@ namespace A21API.Services
             return true;
         }
 
-        private bool EmploiDuTempsValide(EmploiTemps emploiTemps)
+        private async Task<bool> EmploiDuTempsValide(EmploiTemps emploiTemps)
         {
-            return ValiderNombrePeriodeParEnseignantParJour(emploiTemps);
+            var listeCrenos = await getCrenoAvecEnseignants(emploiTemps);
+            var resultat = true;
+            // Valider nombre des cours par jours ne depasse pas 3
+            resultat = ValiderNombrePeriodeParEnseignantParJour(listeCrenos);
+            // Valider nombre total des periodes par enseignant d'anglais par emploi du temps
+            resultat = resultat && ValiderNombrePeriodeAnglaisParSemaine(listeCrenos);
+            // Valider nombre total des periodes par enseignant d'art par emploi du temps
+            resultat = resultat && ValiderNombrePeriodeArtParSemaine(listeCrenos);
+            // Valider nombre total des periodes par enseignant d'art par emploi du temps
+            resultat = resultat && ValiderNombrePeriodeSportParSemaine(listeCrenos);
+            return resultat;
             // Valider nombre des cours successives
-            // Valider nombre total des periodes par enseignant par emploi du temps
             // Valider nombre total des periodes par enseignant pour tous les enmploi du temps en cours
-            // valides nombres d'un cours par emploi du temps
-            //...
         }
 
-        private bool ValiderNombrePeriodeParEnseignantParJour(EmploiTemps emploiTemps)
+        private bool ValiderNombrePeriodeParEnseignantParJour(List<CrenoHoraire> crenoHoraires)
         {
-            var groups = emploiTemps.CrenoHoraires
+            var groups = crenoHoraires
                             .GroupBy(x => new { x.Jours, x.EnseignantID })
                             .Select(g => new
                             {
                                 Jours = g.Key.Jours,
-                                Enseignant = g.Key.EnseignantID,
+                                EnseignantId = g.Key.EnseignantID,
                                 Creno = g.OrderBy(c => c.Periode)
                             });
 
             foreach (var g in groups)
             {
-                if (g.Enseignant != null)
+                if (g.EnseignantId != null)
                 {
-                    if (g.Creno.Count() > 3)
+                    if (g.Creno.Count() > 4)
                     {
-                        _erreursValidation.Add($"l'enseignant {g.Enseignant} a plus que 3 periode le {g.Jours}");
+                        _erreursValidation.Add($"l'enseignant {g.Creno.First().Enseignant?.Nom} a plus que 3 periode le {g.Jours}");
                         return false;
                     }
                 }
@@ -168,9 +172,59 @@ namespace A21API.Services
             return true;
         }
 
+        private bool ValiderNombrePeriodeAnglaisParSemaine(List<CrenoHoraire> crenoHoraires)
+        {
+            var result = crenoHoraires.Where(x => x.Enseignant?.Cours == "Anglais");
+            if (result.Count() > 3)
+            {
+                _erreursValidation.Add($"Le nombre de cours d'anglais ({result.Count()}) est plus que 2 séances par semaine");
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValiderNombrePeriodeArtParSemaine(List<CrenoHoraire> crenoHoraires)
+        {
+            var result = crenoHoraires.Where(x => x.Enseignant?.Cours == "Art");
+            if (result.Count() > 2)
+            {
+                _erreursValidation.Add($"Le nombre de cours d'art = {result.Count()} est plus que 2 séances par semaine");
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValiderNombrePeriodeSportParSemaine(List<CrenoHoraire> crenoHoraires)
+        {
+            var result = crenoHoraires.Where(x => x.Enseignant?.Cours == "Sport");
+            if (result.Count() > 3)
+            {
+                _erreursValidation.Add($"Le nombre de cours de sport = {result.Count()} est plus que 2 séances par semaine");
+                return false;
+            }
+            return true;
+        }
+
         public List<string> getErrors()
         {
             return _erreursValidation;
+        }
+
+        private async Task<List<Enseignant>> getListeEnseigant()
+        {
+            return await _context.Enseignants.ToListAsync();
+        }
+
+        private async Task<List<CrenoHoraire>> getCrenoAvecEnseignants(EmploiTemps empt)
+        {
+            var listeEnseignant = await getListeEnseigant();
+            var listeCrenos = empt.CrenoHoraires.ToList();
+            listeCrenos.ForEach(c =>
+            {
+                c.Enseignant = listeEnseignant.FirstOrDefault(x => x.Id == c.EnseignantID);
+            });
+
+            return listeCrenos;
         }
     }
 }

@@ -37,12 +37,10 @@ namespace A21API.Controllers
                 return Ok(emploiTemps);
         }
 
-
         // POST: api/EmploiTemps
         [HttpPost]
         public async Task<ActionResult<EmploiTemps>> PostEmploiTemps(EmploiTemps emploiTemps)
         {
-
             var result = await _emploiTempsService.SaveEmploiTemps(emploiTemps);
             if (result == null)
             {
@@ -70,6 +68,5 @@ namespace A21API.Controllers
             else
                 return NotFound();
         }
-
     }
 }
